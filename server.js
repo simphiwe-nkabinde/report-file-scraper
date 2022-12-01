@@ -2,6 +2,7 @@ const { request, response } = require("express");
 const express = require("express");
 const puppeteer = require("puppeteer");
 const fs = require('fs');
+const res = require("express/lib/response");
 const app = express();
 const port = 3000;
 
@@ -20,23 +21,26 @@ async function scrape(loadLinkId, browser) {
   const page = await browser.newPage();
 
   // await page.setDefaultNavigationTimeout(0);
-  await page.goto(localSite);
+  await page.goto(disclosureSite);
   await page.click(`#${loadLinkId}`);
 
-  await page.waitForResponse(res => res.status() == 200);
-  await page.waitForSelector(`.loadContainer.${loadLinkId}`, {visible: true})
-  const refList = await page.$$eval(`a`, aTags => {
-    return aTags.map(a => {
-      return a.href
-    })
-  });
-
-  page.close();
-  return await refList;
-
+//  const firstResponse = await page.waitForResponse( async res => await res.text())
+//  console.log(await firstResponse)
+ const searchList = await page.waitForSelector(`legend`, {visible: true})
+ let refList;
+  if (await searchList) {
+    refList = await page.$$eval(`a`, aTags => {
+      return aTags.map(a => {
+        return a.href
+      })
+    });
+    console.log('close');
+    page.close();
+    return await refList;
+  }
 }
 
-const browser = puppeteer.launch({ headless: false });
+const browser = puppeteer.launch({ headless: true });
 loadLinkIdList.forEach(async linkId => {
   const result = await scrape(linkId, await browser);
   const filtered = result.filter(href => {
