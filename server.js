@@ -59,16 +59,19 @@ loadLinkIdList.forEach(async (linkId, index) => {
 });
 
 //download files
-const browser2 = puppeteer.launch({ headless: false });
-loadLinkIdList.forEach((linkId, index) => {
-  fs.readFile(`links/${linkId}.json`, (err, data) => {
-    const linkList = JSON.parse(data);
-    
-    linkList.forEach(link => {
-      downloadCsv(link, browser2)
+async function getData() {
+  const browser2 = await puppeteer.launch({ headless: false });
+  loadLinkIdList.forEach((linkId, index) => {
+    fs.readFile(`links/${linkId}.json`, (err, data) => {
+      const linkList = JSON.parse(data);
+      
+      linkList.forEach(link => {
+        downloadCsv(link, browser2)
+      })
     })
-  })
-})
+  })  
+}
+getData()
 
 
 app.listen(port, () => {
