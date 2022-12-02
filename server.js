@@ -46,7 +46,8 @@ async function downloadCsv(fileUrl, browser) {
   await page.close()
 }
 
-const browser = puppeteer.launch({ headless: true });
+
+const browser = puppeteer.launch({ headless: false });
 loadLinkIdList.forEach(async (linkId, index) => {
   const result = await scrape(linkId, await browser);
   const filtered = result.filter(href => {
@@ -58,9 +59,9 @@ loadLinkIdList.forEach(async (linkId, index) => {
 });
 
 //download files
-const browser2 = puppeteer.launch({ headless: true });
+const browser2 = puppeteer.launch({ headless: false });
 loadLinkIdList.forEach((linkId, index) => {
-  fs.readFile(`links/${linkId}.json`, data => {
+  fs.readFile(`links/${linkId}.json`, (err, data) => {
     const linkList = JSON.parse(data);
     
     linkList.forEach(link => {
