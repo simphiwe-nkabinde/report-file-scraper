@@ -40,7 +40,9 @@ async function downloadCsv(fileUrl, browser) {
   const page = await browser.newPage();
 
   await page.goto(fileUrl);
-  await page.click('');
+  page.$eval('.dis-csv-list', el => {
+    el.firstChild.firstChild.click()
+  })
   await page.close()
 }
 
