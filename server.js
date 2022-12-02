@@ -20,12 +20,9 @@ const loadLinkIdList = ['PCC', 'CORP', 'ELECT', 'INDEXP', 'LABOR', 'PAC', 'PIC',
 async function scrape(loadLinkId, browser) {
   const page = await browser.newPage();
 
-  // await page.setDefaultNavigationTimeout(0);
   await page.goto(disclosureSite);
   await page.click(`#${loadLinkId}`);
 
-//  const firstResponse = await page.waitForResponse( async res => await res.text())
-//  console.log(await firstResponse)
  const searchList = await page.waitForSelector(`legend`, {visible: true})
  let refList;
   if (await searchList) {
@@ -34,22 +31,41 @@ async function scrape(loadLinkId, browser) {
         return a.href
       })
     });
-    console.log('close');
     page.close();
     return await refList;
   }
 }
 
+async function downloadCsv(fileUrl, browser) {
+  const page = await browser.newPage();
+
+  await page.goto(fileUrl);
+  await page.click('');
+  await page.close()
+}
+
 const browser = puppeteer.launch({ headless: true });
-loadLinkIdList.forEach(async linkId => {
+loadLinkIdList.forEach(async (linkId, index) => {
   const result = await scrape(linkId, await browser);
   const filtered = result.filter(href => {
     return href.includes('https://disclosures.utah.gov/Search/PublicSearch/FolderDetails/')
   })
   let data = JSON.stringify(filtered);
   fs.writeFileSync(`links/${linkId}.json`, data)
+  console.log(`saving report urls: ${index} / ${loadLinkIdList.length}`);
 });
 
+//download files
+const browser2 = puppeteer.launch({ headless: true });
+loadLinkIdList.forEach((linkId, index) => {
+  fs.readFile(`links/${linkId}.json`, data => {
+    const linkList = JSON.parse(data);
+    
+    linkList.forEach(link => {
+      downloadCsv(link, browser2)
+    })
+  })
+})
 
 
 app.listen(port, () => {
