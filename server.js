@@ -74,8 +74,15 @@ async function getData() {
     })
   })  
 }
-saveCsvUrls()
-getData()
+
+async function runProgram() {
+  const save = await saveCsvUrls()
+  if (await save) {
+    getData()
+  }
+}
+
+runProgram();
 
 
 app.listen(port, () => {
