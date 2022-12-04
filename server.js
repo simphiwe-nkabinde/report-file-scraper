@@ -15,7 +15,7 @@ app.get("/", (req, res) => {
 const localSite = "http://127.0.0.1:5500/Lieutenant%20Governor's%20Office%20-%20Public%20Search.html";
 const disclosureSite = "https://disclosures.utah.gov/Search/PublicSearch";
 
-const loadLinkIdList = ['PCC', 'CORP', 'ELECT', 'INDEXP', 'LABOR', 'PAC', 'PIC', 'PARTY'];
+const loadLinkIdList = ['ELECT'] //['PCC', 'CORP', 'ELECT', 'INDEXP', 'LABOR', 'PAC', 'PIC', 'PARTY'];
 
 async function scrape(loadLinkId, browser) {
   const page = await browser.newPage();
@@ -31,7 +31,7 @@ async function scrape(loadLinkId, browser) {
         return a.href
       })
     });
-    page.close();
+    // page.close();
     return await refList;
   }
 }
@@ -41,22 +41,25 @@ async function downloadCsv(fileUrl, browser) {
 
   await page.goto(fileUrl);
   page.$eval('.dis-csv-list', el => {
-    el.firstChild.firstChild.click()
+    el.children[0].children[0].click()
   })
-  await page.close()
+  // await page.close()
 }
 
-
-const browser = puppeteer.launch({ headless: false });
-loadLinkIdList.forEach(async (linkId, index) => {
-  const result = await scrape(linkId, await browser);
-  const filtered = result.filter(href => {
-    return href.includes('https://disclosures.utah.gov/Search/PublicSearch/FolderDetails/')
-  })
-  let data = JSON.stringify(filtered);
-  fs.writeFileSync(`links/${linkId}.json`, data)
-  console.log(`saving report urls: ${index} / ${loadLinkIdList.length}`);
-});
+async function saveCsvUrls() {
+  const browser = await puppeteer.launch({ headless: false });
+  loadLinkIdList.forEach(async (linkId, index) => {
+    const result = await scrape(linkId, await browser);
+    const filtered = result.filter(href => {
+      return href.includes('https://disclosures.utah.gov/Search/PublicSearch/FolderDetails/')
+    })
+    let data = JSON.stringify(filtered);
+    fs.writeFileSync(`links/${linkId}.json`, data)
+    console.log(`saving report urls: ${index} / ${loadLinkIdList.length}`);
+  });
+  return true
+  
+}
 
 //download files
 async function getData() {
@@ -71,6 +74,7 @@ async function getData() {
     })
   })  
 }
+saveCsvUrls()
 getData()
 
 
