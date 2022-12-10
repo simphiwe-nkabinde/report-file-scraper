@@ -33,7 +33,7 @@ async function scrape(loadLinkId, browser) {
       return await refList;
     }
   } catch (err) {
-    console.log(`FAIL: scrape() (${loadLinkId}))`, err.message);
+    console.log(`FAILED: scrape() (${loadLinkId}))`, err.message);
     page.close();
   }
 }
@@ -52,7 +52,7 @@ async function downloadCsv(fileUrl, browser) {
     });
     await page.close();
   } catch (err) {
-    console.log("downloadCvs Error:", err.message);
+    console.log("FAILED: downloadCsv()", err.message);
     await page.close();
   }
 }
@@ -71,7 +71,7 @@ function runSraper() {
             downloadCsv(href, await browser);
           }
         });
-      }
+      } else {console.log(`FAILED: scrape() (${linkId})`);}
     } catch (err) {
       console.log(`FAILED: ID ${index + 1} of ${loadLinkIdList.length} (${linkId}))`, err);
     }
