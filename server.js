@@ -21,7 +21,7 @@ async function scrape(loadLinkId, browser) {
     await page.goto(disclosureSite);
     await page.click(`#${loadLinkId}`);
 
-    const searchList = await page.waitForSelector(`legend`, { visible: true });
+    const searchList = await page.waitForSelector(`legend`, { visible: true, timeout: 0 });
     let refList;
     if (await searchList) {
       refList = await page.$$eval(`a`, (aTags) => {
@@ -43,33 +43,42 @@ async function scrape(loadLinkId, browser) {
  * @param {string} fileUrl 
  * @param {Promise<puppeteer.Browser>} browser 
  */
-async function downloadCsv(fileUrl, browser) {
-  const page = await browser.newPage();
+async function downloadCsv(fileUrl, browser, progress) {
+  // await page.waitForNavigation({waitUntil: 'domcontentloaded'})
   try {
-    await page.goto(fileUrl);
+    const page = await browser.newPage();
+    await page.goto(fileUrl,{ timeout: 0});
     page.$eval(".dis-csv-list", (el) => {
       el.children[0].children[0].click();
+      console.log('downloading...');
     });
-    await page.close();
+    console.log(progress);
+    // await page.waitForNavigation({waitUntil: 'domcontentloaded'}, async (res) => {
+    //   res.then(res => log(res));
+    //   await page.close()
+    // })
+    // await page.close();
   } catch (err) {
     console.log("FAILED: downloadCsv()", err.message);
     await page.close();
+    return
   }
 }
 
-function runSraper() {
-  const browser = puppeteer.launch({ headless: true });
+async function runSraper() {
+  const browser = await puppeteer.launch({ headless: false });
   loadLinkIdList.forEach(async (linkId, index) => {
     try {
-      console.log(
-        `START: ID ${index + 1} of ${loadLinkIdList.length} (${linkId}))`
-      );
+      console.log(`START: ID ${index + 1} of ${loadLinkIdList.length} (${linkId}))`);
       const result = await scrape(linkId, await browser);
       if (await result) {
-        await result.forEach(async (href, index) => {
+        await result.forEach(async (href, index, arr) => {
           if (href.includes("https://disclosures.utah.gov/Search/PublicSearch/FolderDetails/")) {
-            downloadCsv(href, await browser);
-          }
+            // await downloadingPage.waitForNavigation({waitUntil: 'networkidle0'})
+            // const downloadingPage = await browser.newPage();
+            let progress = ((index+1)/arr.length)*100;
+            downloadCsv(href, await browser, progress);  
+          }               
         });
       } else {console.log(`FAILED: scrape() (${linkId})`);}
     } catch (err) {
