@@ -44,7 +44,6 @@ async function scrape(loadLinkId, browser) {
  * @param {Promise<puppeteer.Browser>} browser 
  */
 async function downloadCsv(fileUrl, browser, progress) {
-  // await page.waitForNavigation({waitUntil: 'domcontentloaded'})
   try {
     const page = await browser.newPage();
     await page.goto(fileUrl,{ timeout: 0});
@@ -53,11 +52,6 @@ async function downloadCsv(fileUrl, browser, progress) {
       console.log('downloading...');
     });
     console.log(progress);
-    // await page.waitForNavigation({waitUntil: 'domcontentloaded'}, async (res) => {
-    //   res.then(res => log(res));
-    //   await page.close()
-    // })
-    // await page.close();
   } catch (err) {
     console.log("FAILED: downloadCsv()", err.message);
     await page.close();
@@ -74,8 +68,6 @@ async function runSraper() {
       if (await result) {
         await result.forEach(async (href, index, arr) => {
           if (href.includes("https://disclosures.utah.gov/Search/PublicSearch/FolderDetails/")) {
-            // await downloadingPage.waitForNavigation({waitUntil: 'networkidle0'})
-            // const downloadingPage = await browser.newPage();
             let progress = ((index+1)/arr.length)*100;
             downloadCsv(href, await browser, progress);  
           }               
